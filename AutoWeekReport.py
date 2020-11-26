@@ -1,13 +1,17 @@
 import xlrd
 
+import datetime
+
 class AutoWeekReport(object):
 
-	def __init__(self, path: str, month: str):
+	def __init__(self, path: str, month: str, startDate: str, endDate: str):
 		self._path = path
 		self._month = month
+		self._startDate = datetime.date(*map(int, startDate.split('-')))
+		self._endDate = datetime.date(*map(int, endDate.split('-')))
 		self._d = {}
 
-	def __getdata__(self):
+	def __getdata__(self) -> list:
 		data = xlrd.open_workbook(self._path)
 		table = data.sheet_by_name(self._month)
 
@@ -17,7 +21,11 @@ class AutoWeekReport(object):
 		for i in range(nrows):
 			cur_row = list(filter(None, table.row_values(i)))
 			if '监督抽检' in cur_row or '大检查' in cur_row:
-				container[i] = cur_row
+				cur_date = xlrd.xldate.xldate_as_datetime(table.row_values(i)[1], 0)
+				if cur_date.date().__ge__(self._startDate) and cur_date.date().__le__(self._endDate):
+
+					container[i] = cur_row
+		container = list(filter(None, container))
 		return container
 
 	def __getMap__(self):
@@ -59,3 +67,4 @@ class AutoWeekReport(object):
 		allNums = sum(self._d.values())
 		print('总数： {0} 组'.format(allNums))
 		return self._d
+
