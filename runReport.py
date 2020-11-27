@@ -15,3 +15,4 @@ if __name__ == '__main__':
     endDate = input('请输入结束日期（注意此处的日期格式必须为xxxx-xx-xx）: \n')
 
     a = awr.AutoWeekReport(path, month, startData, endDate)
+    b = a.getRes()

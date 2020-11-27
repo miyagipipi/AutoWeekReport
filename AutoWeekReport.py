@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov 27 17:48:11 2020
+
+@author: LQS
+"""
 import xlrd
 import copy
 import datetime
@@ -30,7 +36,7 @@ class AutoWeekReport(object):
 		return self._container
 	
 	#输出数量前五的工厂项目名称
-	def __pooducts__(self, l):
+	def __pooducts__(self, l : list) -> list:
 		pro_map = {}
 		for prod in l:
 			if prod[6] not in pro_map:
@@ -40,16 +46,16 @@ class AutoWeekReport(object):
 		prod_sorted = sorted(pro_map.items(), key = lambda x : x[1])
 		for i in range(1, 6):
 			print(prod_sorted[-i][0] +': {0}'.format(prod_sorted[-i][1]))
-		#return prod_sorted
+		return prod_sorted
 
 	def __getMap__(self):
 		allList = self.__getdata__()
 		for i in allList:
 			if i:
-				if i[3] not in self._d:
-					self._d[i[3]] = i[4]
+				if i[3].strip() not in self._d:
+					self._d[i[3].strip()] = i[4]
 				else:
-					self._d[i[3]] += i[4]
+					self._d[i[3].strip()] += i[4]
 
 	def __dataCleaning__(self):
 		self.__getMap__()
@@ -85,13 +91,27 @@ class AutoWeekReport(object):
 				self._d['钢绞线力学性能'] += self._d['钢绞线力学加松弛']
 				del self._d['钢绞线力学加松弛']
 
-	def getRes(self):
+	def getRes(self) -> dict:
 		self.__dataCleaning__()
 		allNums = sum(self._d.values())
 		print('总数： {0} 组'.format(allNums))
 
-		self.__pooducts__(self._container)
+		products = self.__pooducts__(self._container)
 		
 		res = copy.deepcopy(self._d)
 		self._d.clear()
+
+		#增加写入文本的功能
+		with open(r'.\材料检测部周报数据汇总.txt', 'a') as f:
+			f.write('\n------------------------------------------------\n')
+			f.write(self._startDate.strftime('%Y%m%d') + '                ' +\
+			self._endDate.strftime('%Y%m%d') + '\n')
+			for i in res.keys():
+				f.write(i + '\t' + str(res[i]) + '\n')
+			f.write('**一共 {0} 组**'.format(allNums) + '\n\n')
+			f.write(r'**项目名称：数量**' + '\n')
+			for name, pro_num in products:
+				f.write(name + '\t' + str(pro_num) + '\n')
+			f.write('-----------------------------------------------\n')
 		return res
+#下一步，增加捕捉异常的方法
