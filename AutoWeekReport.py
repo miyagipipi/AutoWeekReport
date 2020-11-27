@@ -10,13 +10,14 @@ class AutoWeekReport(object):
 		self._startDate = datetime.date(*map(int, startDate.split('-')))
 		self._endDate = datetime.date(*map(int, endDate.split('-')))
 		self._d = {}
+		self._container = []
 
 	def __getdata__(self) -> list:
 		data = xlrd.open_workbook(self._path)
 		table = data.sheet_by_name(self._month)
 
 		nrows = table.nrows
-		container = [None]*nrows
+		self._container = [None]*nrows
 
 		for i in range(nrows):
 			cur_row = list(filter(None, table.row_values(i)))
@@ -24,9 +25,22 @@ class AutoWeekReport(object):
 				cur_date = xlrd.xldate.xldate_as_datetime(table.row_values(i)[1], 0)
 				if cur_date.date().__ge__(self._startDate) and cur_date.date().__le__(self._endDate):
 
-					container[i] = cur_row
-		container = list(filter(None, container))
-		return container
+					self._container[i] = cur_row
+		self._container = list(filter(None, self._container))
+		return self._container
+	
+	#输出数量前五的工厂项目名称
+	def __pooducts__(self, l):
+		pro_map = {}
+		for prod in l:
+			if prod[6] not in pro_map:
+				pro_map[prod[6]] = 1
+			else:
+				pro_map[prod[6]] += 1
+		prod_sorted = sorted(pro_map.items(), key = lambda x : x[1])
+		for i in range(1, 6):
+			print(prod_sorted[-i][0] +': {0}'.format(prod_sorted[-i][1]))
+		#return prod_sorted
 
 	def __getMap__(self):
 		allList = self.__getdata__()
@@ -75,6 +89,9 @@ class AutoWeekReport(object):
 		self.__dataCleaning__()
 		allNums = sum(self._d.values())
 		print('总数： {0} 组'.format(allNums))
+
+		self.__pooducts__(self._container)
+		
 		res = copy.deepcopy(self._d)
 		self._d.clear()
 		return res
