@@ -1,5 +1,5 @@
 import xlrd
-
+import copy
 import datetime
 
 class AutoWeekReport(object):
@@ -29,8 +29,8 @@ class AutoWeekReport(object):
 		return container
 
 	def __getMap__(self):
-		res = self.__getdata__()
-		for i in res:
+		allList = self.__getdata__()
+		for i in allList:
 			if i:
 				if i[3] not in self._d:
 					self._d[i[3]] = i[4]
@@ -40,10 +40,13 @@ class AutoWeekReport(object):
 	def __dataCleaning__(self):
 		self.__getMap__()
 		#将各种集料汇集成 集料
-		self._d['集料'] = self._d.get('粗集料', 0.0) + self._d.get('细集料', 0.0) + self._d.get('沥青路面粗集料', 0.0) + self._d.get('沥青路面细集料', 0.0) + self._d.get('砂', 0.0) + self._d.get('碎石', 0.0)
+		self._d['集料'] = self._d.get('粗集料', 0.0) + self._d.get('细集料', 0.0) + \
+		self._d.get('沥青路面粗集料', 0.0) + self._d.get('沥青路面细集料', 0.0) + \
+		self._d.get('砂', 0.0) + self._d.get('碎石', 0.0) + self._d.get('沥青碎石', 0.0) + \
+		self._d.get('沥青细集料', 0.0) + self._d.get('沥青粗集料', 0.0)
 
 		aggregate = ['粗集料', '细集料', '沥青路面粗集料', '沥青路面细集料',
-		'沥青路面粗集料', '沥青路面细集料', '砂', '碎石',]
+		'沥青粗集料', '沥青细集料', '砂', '碎石', '沥青碎石']
 
 		#删除剩余的各种集料
 		for i in aggregate:
@@ -62,9 +65,16 @@ class AutoWeekReport(object):
 				self._d['钢筋原材'] += self._d['钢筋原材加反向弯曲']
 				del self._d['钢筋原材加反向弯曲']
 
+		#将钢绞线力学加松弛加入到钢绞线力学性能中
+		if '钢绞线力学加松弛' in self._d:
+			if '钢绞线力学性能' in self._d:
+				self._d['钢绞线力学性能'] += self._d['钢绞线力学加松弛']
+				del self._d['钢绞线力学加松弛']
+
 	def getRes(self):
 		self.__dataCleaning__()
 		allNums = sum(self._d.values())
 		print('总数： {0} 组'.format(allNums))
-		return self._d
-
+		res = copy.deepcopy(self._d)
+		self._d.clear()
+		return res
