@@ -93,7 +93,7 @@ class AutoWeekReport(object):
 
 	def getRes(self) -> dict:
 		self.__dataCleaning__()
-		allNums = sum(self._d.values())
+		allNums = int(sum(self._d.values()))
 		print('总数： {0} 组'.format(allNums))
 
 		products = self.__pooducts__(self._container)
@@ -107,7 +107,7 @@ class AutoWeekReport(object):
 			f.write(self._startDate.strftime('%Y%m%d') + '                ' +\
 			self._endDate.strftime('%Y%m%d') + '\n')
 			for i in res.keys():
-				f.write(i + '\t' + str(res[i]) + '\n')
+				f.write(i + '\t' + str(int(res[i])) + '\n')
 			f.write('**一共 {0} 组**'.format(allNums) + '\n\n')
 			f.write(r'**项目名称：数量**' + '\n')
 			for name, pro_num in products:
