@@ -36,7 +36,7 @@ class AutoWeekReport(object):
 		return self._container
 	
 	#输出数量前五的工厂项目名称
-	def __pooducts__(self, l : list) -> list:
+	def __products__(self, l: list) -> list:
 		pro_map = {}
 		for prod in l:
 			if prod[6] not in pro_map:
@@ -44,8 +44,11 @@ class AutoWeekReport(object):
 			else:
 				pro_map[prod[6]] += 1
 		prod_sorted = sorted(pro_map.items(), key = lambda x : x[1])
+		res = ''
 		for i in range(1, 6):
-			print(prod_sorted[-i][0] +': {0}'.format(prod_sorted[-i][1]))
+			res += prod_sorted[-i][0] + '，'
+		print(res)
+		del res
 		return prod_sorted
 
 	def __getMap__(self):
@@ -91,12 +94,18 @@ class AutoWeekReport(object):
 				self._d['钢绞线力学性能'] += self._d['钢绞线力学加松弛']
 				del self._d['钢绞线力学加松弛']
 
+		#将混凝土试块更改为混凝土力学
+		if '混凝土试块' in self._d:
+			self._d['混凝土力学'] = self._d['混凝土试块']
+			del self._d['混凝土试块']
+
 	def getRes(self) -> dict:
 		self.__dataCleaning__()
 		allNums = int(sum(self._d.values()))
+		print('分类：{0} 类'.format(len(self._d)))
 		print('总数： {0} 组'.format(allNums))
 
-		products = self.__pooducts__(self._container)
+		products = self.__products__(self._container)
 		
 		res = copy.deepcopy(self._d)
 		self._d.clear()
@@ -106,12 +115,14 @@ class AutoWeekReport(object):
 			f.write('\n------------------------------------------------\n')
 			f.write(self._startDate.strftime('%Y%m%d') + '                ' +\
 			self._endDate.strftime('%Y%m%d') + '\n')
+			nums = 1
 			for i in res.keys():
-				f.write(i + '\t' + str(int(res[i])) + '\n')
+				f.write(str(nums) + '\t' + i + '\t' + str(int(res[i])) + '\n')
+				nums += 1
+			f.write('**一共 {0} 类**'.format(i) + '\n')
 			f.write('**一共 {0} 组**'.format(allNums) + '\n\n')
 			f.write(r'**项目名称：数量**' + '\n')
 			for name, pro_num in products:
 				f.write(name + '\t' + str(pro_num) + '\n')
 			f.write('-----------------------------------------------\n')
 		return res
-#下一步，增加捕捉异常的方法
