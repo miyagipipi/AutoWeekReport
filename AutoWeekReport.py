@@ -28,6 +28,7 @@ class AutoWeekReport(object):
 		for i in range(nrows):
 			cur_row = list(filter(None, table.row_values(i)))
 			if '监督抽检' in cur_row or '大检查' in cur_row:
+				#处理日期 xlrd.xldate.xldate_as_datetime
 				cur_date = xlrd.xldate.xldate_as_datetime(table.row_values(i)[1], 0)
 				if cur_date.date().__ge__(self._startDate) and cur_date.date().__le__(self._endDate):
 
@@ -101,6 +102,10 @@ class AutoWeekReport(object):
 
 	def getRes(self) -> dict:
 		self.__dataCleaning__()
+		try: self._container[-1]
+		except IndexError:
+			print('\n所选日期内没有委托数据!')
+			return None
 		allNums = int(sum(self._d.values()))
 		print('分类：{0} 类'.format(len(self._d)))
 		print('总数： {0} 组'.format(allNums))
@@ -119,7 +124,7 @@ class AutoWeekReport(object):
 			for i in res.keys():
 				f.write(str(nums) + '\t' + i + '\t' + str(int(res[i])) + '\n')
 				nums += 1
-			f.write('**一共 {0} 类**'.format(i) + '\n')
+			f.write('**一共 {0} 类**'.format(nums-1) + '\n')
 			f.write('**一共 {0} 组**'.format(allNums) + '\n\n')
 			f.write(r'**项目名称：数量**' + '\n')
 			for name, pro_num in products:
